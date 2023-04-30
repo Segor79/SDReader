@@ -40,7 +40,29 @@
 /* USER CODE BEGIN PD */
 	#define Button1 HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_8)
 	#define Button2 HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_9)
+	
+	#define LedGreen_ON		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET);			// Р’РєР»
+	#define LedGreen_OFF	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET);			// Р’С‹РєР»
+	#define LedBlue_ON		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, GPIO_PIN_SET);			// Р’РєР»
+	#define LedBlue_OFF		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, GPIO_PIN_RESET);			// Р’С‹РєР»
+	#define LedRed_ON			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);			// Р’РєР»
+	#define LedRed_OFF		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);			// Р’С‹РєР»
+	#define LedYellow_ON		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET);			// Р’РєР»
+	#define LedYellow_OFF		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);			// Р’С‹РєР»
 
+	#define OUT1_ON		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);			// Р’РєР»
+	#define OUT1_OFF	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);			// Р’С‹РєР»
+	#define OUT2_ON		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);			// Р’РєР»
+	#define OUT2_OFF	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);			// Р’С‹РєР»
+	#define OUT3_ON		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET);			// Р’РєР»
+	#define OUT3_OFF	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);			// Р’С‹РєР»
+	#define OUT4_ON		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);			// Р’РєР»
+	#define OUT4_OFF	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);			// Р’С‹РєР»
+	#define OUT5_ON		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);			// Р’РєР»
+	#define OUT5_OFF	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);			// Р’С‹РєР»
+	#define OUT6_ON		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);			// Р’РєР»
+	#define OUT6_OFF	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);			// Р’С‹РєР»
+	
 	#define cntRead	1024 //6200
 	#define PWM_HI	0x2B	//43
 	#define PWM_LO	0x15	//21
@@ -48,10 +70,13 @@
 	#define ARGB_LIB
 	#define DEBAG_RGB
 
-	#define ClearBit(reg, bit)       reg &= (~(1<<(bit)))   //пример: ClearBit(PORTB, 1); //сбросить 1-й бит PORTB
-	#define SetBit(reg, bit)          reg |= (1<<(bit))     //пример: SetBit(PORTB, 3); //установить 3-й бит PORTB
-	#define BitIsClear(reg, bit)    ((reg & (1<<(bit))) == 0)		//пример: if (BitIsClear(PORTB,1)) {...} //если бит очищен
-//	#define BitIsSet(reg, bit)       ((reg & (1<<(bit))) != 0)		//пример: if(BitIsSet(PORTB,2)) {...} //если бит установлен
+	#define ClearBit(reg, bit)       reg &= (~(1<<(bit)))   //РїСЂРёРјРµСЂ: ClearBit(PORTB, 1); //СЃР±СЂРѕСЃРёС‚СЊ 1-Р№ Р±РёС‚ PORTB
+	#define SetBit(reg, bit)          reg |= (1<<(bit))     //РїСЂРёРјРµСЂ: SetBit(PORTB, 3); //СѓСЃС‚Р°РЅРѕРІРёС‚СЊ 3-Р№ Р±РёС‚ PORTB
+	#define BitIsClear(reg, bit)    ((reg & (1<<(bit))) == 0)		//РїСЂРёРјРµСЂ: if (BitIsClear(PORTB,1)) {...} //РµСЃР»Рё Р±РёС‚ РѕС‡РёС‰РµРЅ
+	#define BitIsSet(reg, bit)       ((reg & (1<<(bit))) != 0)		//РїСЂРёРјРµСЂ: if(BitIsSet(PORTB,2)) {...} //РµСЃР»Рё Р±РёС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅ
+
+	#define DELAY_VAL 100
+
 
 /* USER CODE END PD */
 
@@ -61,6 +86,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+ADC_HandleTypeDef hadc1;
+
 CAN_HandleTypeDef hcan;
 
 SPI_HandleTypeDef hspi2;
@@ -83,10 +110,11 @@ UART_HandleTypeDef huart1;
 	uint8_t sect[512];
 	uint8_t readBuff[cntRead];
 	uint8_t writeBuff[1024];
+	uint8_t writeBuff2[512];
 //	uint16_t byteswritten;
 
 	UINT  cntReadBytes;
-	//char buffer1[512] ="Selection of VAM is set by the previous address set instruction. If the address set instruction of RAM is not performed before this instruction, the data that has been read first is invalid, as the direction of AC is not yet determined. If RAM data is read several times without RAM address instructions set before, read operation, the correct RAM data can be obtained from the second. But the first data would be incorrect, as there is no time margin to transfer RAM data. In case of DDRAM read operation The..."; //Ѕуфер данных дл¤ записи/чтени¤
+	//char buffer1[512] ="Selection of VAM is set by the previous address set instruction. If the address set instruction of RAM is not performed before this instruction, the data that has been read first is invalid, as the direction of AC is not yet determined. If RAM data is read several times without RAM address instructions set before, read operation, the correct RAM data can be obtained from the second. But the first data would be incorrect, as there is no time margin to transfer RAM data. In case of DDRAM read operation The..."; //Р…СѓС„РµСЂ РґР°РЅРЅС‹С… РґР»В¤ Р·Р°РїРёСЃРё/С‡С‚РµРЅРёВ¤
 	extern char str1[60];
 	uint32_t byteswritten,bytesread;
 	uint8_t result;
@@ -96,7 +124,7 @@ UART_HandleTypeDef huart1;
 	char *fn;
 	DIR dir;
 	uint8_t resultF = 0;
-	FRESULT res; //результат выполнения
+	FRESULT res; //СЂРµР·СѓР»СЊС‚Р°С‚ РІС‹РїРѕР»РЅРµРЅРёСЏ
 	DWORD fre_clust, fre_sect, tot_sect;
 	
 	//extern char USER_Path[4]; /* logical drive path */
@@ -128,6 +156,7 @@ static void MX_CAN_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 
@@ -135,13 +164,89 @@ static void MX_TIM1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/* 
+	РљРѕР»Р±РµРє РґР»СЏ РїСЂРёС‘РјР° РґР°РЅРЅС‹С… (РґР»СЏ Р±СѓС„РµСЂР° RX_FIFO_0)
+	РџСЂРё РїСЂРёС‘РјРµ Р»СЋР±РѕРіРѕ РєР°РґСЂР° РјС‹ С‚СѓС‚ Р¶Рµ Р·Р°Р±РёСЂР°РµРј РµРіРѕ РёР· РїРѕС‡С‚РѕРІРѕРіРѕ СЏС‰РёРєР° СЃ РїРѕРјРѕС‰СЊСЋ С„СѓРЅРєС†РёРё HAL_CAN_GetRxMessage(...)
+	Рё РјРёРіР°РµРј СЃРІРµС‚РёРєРѕРј.
+	Р’РђР–РќРћ!!!!!!  РґР»СЏ РїСЂРёРµРјР° РЅСѓР¶РЅРѕ РІ MX_CAN_Init() РїСЂРѕРїРёСЃР°С‚СЊ РЅР°СЃС‚СЂРѕР№РєРё РїСЂРёРµРјР°
+*/
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+    if(HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
+    {  
+			if(RxData[0] == 0x44){
+				readCAN = 1;
+			}
+    }
+}
+
+/* 
+	РљРѕР»Р±РµРє РґР»СЏ РѕС€РёР±РѕРє
+*/
+void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
+{
+//    uint32_t er = HAL_CAN_GetError(hcan);
+//    sprintf(trans_str,"ER CAN %lu %08lX", er, er);
+//    HAL_UART_Transmit(&huart1, (uint8_t*)trans_str, strlen(trans_str), 100);
+}
+
+void HAL_CAN_Send()
+{
+		while(HAL_CAN_GetTxMailboxesFreeLevel(&hcan) == 0);
+
+		if(HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
+		{
+//			HAL_UART_Transmit(&huart1, (uint8_t*)"ER SEND\n", 8, 100);
+		}
+//		HAL_Delay(500);
+}
+
+
+
+//========================== for SD Card:
+
+FRESULT ReadFile(void){
+  uint16_t i=0, i1=0;
+  uint32_t ind=0;
+  uint32_t f_size = MyFile.fsize;
+	cntBytesStat = 0;
+	
+  ind=0;
+  do
+  {
+    if(f_size<512)
+    {
+      i1=f_size;
+    }
+    else
+    {
+      i1=512;
+    }
+    f_size-=i1;
+    f_lseek(&MyFile,ind);
+    f_read(&MyFile,sect,i1,(UINT *)&bytesread);		//( , РЈРєР°Р·Р°С‚РµР»СЊ РЅР° Р±СѓС„РµСЂ РґР°РЅРЅС‹С…, РєРѕР»-РІРѕ Р±Р°Р№С‚ РґР»СЏ С‡С‚РµРЅРёСЏ, РЈРєР°Р·Р°С‚РµР»СЊ РЅР° РєРѕР»-РІРѕ РїСЂРѕС‡РёС‚Р°РЅРЅС‹С… Р±Р°Р№С‚РѕРІ) С‡С‚РµРЅРёРµ РїРѕ 512 Р±Р°Р№С‚
+
+		
+    for(i=0;i<bytesread;i++)
+    {
+//			readBuff[cntBytesStat] = *sect+i;
+			readBuff[cntBytesStat] = sect[i];
+			cntBytesStat++;
+
+    }
+    ind+=i1;
+  }
+  while(f_size>0);
+	
+  return FR_OK;
+}
 
 
 FRESULT ReadFileOUT(void){
   uint16_t i=0, i1=0, it=0;
   uint32_t ind=0;
   uint32_t f_size = MyFile.fsize;
-	cntBytesStat = 0;		// общее количество прочитанных байт (глобальная переменная)
+	cntBytesStat = 0;		// РѕР±С‰РµРµ РєРѕР»РёС‡РµСЃС‚РІРѕ РїСЂРѕС‡РёС‚Р°РЅРЅС‹С… Р±Р°Р№С‚ (РіР»РѕР±Р°Р»СЊРЅР°СЏ РїРµСЂРµРјРµРЅРЅР°СЏ)
 	uint16_t cntBytesFrame = 0;		// 
 	uint16_t k = 0;
 	
@@ -158,21 +263,21 @@ FRESULT ReadFileOUT(void){
     }
     f_size-=i1;
     f_lseek(&MyFile,ind);
-    f_read(&MyFile,sect,i1,(UINT *)&bytesread);		//( , Указатель на буфер данных, кол-во байт для чтения, Указатель на кол-во прочитанных байтов) чтение по 512 байт
+    f_read(&MyFile,sect,i1,(UINT *)&bytesread);		//( , РЈРєР°Р·Р°С‚РµР»СЊ РЅР° Р±СѓС„РµСЂ РґР°РЅРЅС‹С…, РєРѕР»-РІРѕ Р±Р°Р№С‚ РґР»СЏ С‡С‚РµРЅРёСЏ, РЈРєР°Р·Р°С‚РµР»СЊ РЅР° РєРѕР»-РІРѕ РїСЂРѕС‡РёС‚Р°РЅРЅС‹С… Р±Р°Р№С‚РѕРІ) С‡С‚РµРЅРёРµ РїРѕ 512 Р±Р°Р№С‚
 
-		// переносим считанные байты из файла в буфер 
+		// РїРµСЂРµРЅРѕСЃРёРј СЃС‡РёС‚Р°РЅРЅС‹Рµ Р±Р°Р№С‚С‹ РёР· С„Р°Р№Р»Р° РІ Р±СѓС„РµСЂ 
 		
-		if(cntBytesStat == 0){				// первый сектор с инфой 1байт
+		if(cntBytesStat == 0){				// РїРµСЂРІС‹Р№ СЃРµРєС‚РѕСЂ СЃ РёРЅС„РѕР№ 1Р±Р°Р№С‚
 			for(i=1;i<bytesread;i+=3){
-				ARGB_SetRGB(k, sect[i+2], sect[i+1], sect[i]); // Set LED № with R, G, B
+				ARGB_SetRGB(k, sect[i+2], sect[i+1], sect[i]); // Set LED в„– with R, G, B
 				k++;
 				cntBytesStat+=3;
 				cntBytesFrame+=3;
 			}
 		}
-		else{											// следующие сектора  с чистыми данными 
+		else{											// СЃР»РµРґСѓСЋС‰РёРµ СЃРµРєС‚РѕСЂР°  СЃ С‡РёСЃС‚С‹РјРё РґР°РЅРЅС‹РјРё 
 			for(it=0;it<bytesread;it+=3){
-				ARGB_SetRGB(k, sect[it+2], sect[it+1], sect[it]); // Set LED № with R, G, B
+				ARGB_SetRGB(k, sect[it+2], sect[it+1], sect[it]); // Set LED в„– with R, G, B
 				k++;
 				cntBytesStat+=3;
 				cntBytesFrame+=3;
@@ -194,48 +299,6 @@ FRESULT ReadFileOUT(void){
 }
 
 
-
-
-/* 
-	Колбек для приёма данных (для буфера RX_FIFO_0)
-	При приёме любого кадра мы тут же забираем его из почтового ящика с помощью функции HAL_CAN_GetRxMessage(...)
-	и мигаем светиком.
-	ВАЖНО!!!!!!  для приема нужно в MX_CAN_Init() прописать настройки приема
-*/
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
-{
-    if(HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
-    {  
-			if(RxData[0] == 0x44){
-				readCAN = 1;
-			}
-    }
-}
-
-/* 
-	Колбек для ошибок
-*/
-void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
-{
-//    uint32_t er = HAL_CAN_GetError(hcan);
-//    sprintf(trans_str,"ER CAN %lu %08lX", er, er);
-//    HAL_UART_Transmit(&huart1, (uint8_t*)trans_str, strlen(trans_str), 100);
-}
-
-void HAL_CAN_Send()
-{
-		while(HAL_CAN_GetTxMailboxesFreeLevel(&hcan) == 0);
-
-		if(HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
-		{
-//			HAL_UART_Transmit(&huart1, (uint8_t*)"ER SEND\n", 8, 100);
-		}
-}
-
-
-
-//========================== for SD Card:
-
 void InitFlash(void){
 			disk_initialize(SDFatFs.drv);
 		f_mount(&SDFatFs,"",0);
@@ -254,7 +317,7 @@ void InitFlash(void){
 		{
 			while(1)
 			{
-				result = f_readdir(&dir, &fileInfo);			// 4200 байт 
+				result = f_readdir(&dir, &fileInfo);			// 4200 Р±Р°Р№С‚ 
 				if (result==FR_OK && fileInfo.fname[0])
 				{
 					fn = fileInfo.lfname;
@@ -282,9 +345,6 @@ void InitFlash(void){
 		
 	}
 }	
-			
-			
-
 
 /* USER CODE END 0 */
 
@@ -323,17 +383,73 @@ int main(void)
   MX_FATFS_Init();
   MX_USART1_UART_Init();
   MX_TIM1_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-	
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
 	HAL_TIM_Base_Start_IT(&htim1);
+	
+	
+	OUT1_OFF;
+	OUT2_OFF;
+	OUT3_OFF;
+	OUT4_OFF;
+	OUT5_OFF;
+	OUT6_OFF;
+
+	LedGreen_OFF;
+	LedBlue_OFF;
+	LedRed_OFF;
+	LedYellow_OFF;
+	
+	LedRed_ON;
+	HAL_Delay(DELAY_VAL);
+	LedRed_OFF;
+	
+	LedYellow_ON;
+	HAL_Delay(DELAY_VAL);
+	LedYellow_OFF;
+	
+	LedGreen_ON;
+	HAL_Delay(DELAY_VAL);
+	LedGreen_OFF;
+	
+	LedBlue_ON;
+	HAL_Delay(DELAY_VAL);
+	LedBlue_OFF;
+	
+	
+//	OUT1_ON;
+//	HAL_Delay(DELAY_VAL);
+//	OUT1_OFF;
+//	
+//	OUT2_ON;
+//	HAL_Delay(DELAY_VAL);
+//	OUT2_OFF;
+//	
+//	OUT3_ON;
+//	HAL_Delay(DELAY_VAL);
+//	OUT3_OFF;
+//	
+//	OUT4_ON;
+//	HAL_Delay(DELAY_VAL);
+//	OUT4_OFF;
+//	
+//	OUT5_ON;
+//	HAL_Delay(DELAY_VAL);
+//	OUT5_OFF;
+//	
+//	OUT6_ON;
+//	HAL_Delay(DELAY_VAL);
+//	OUT6_OFF;
+	
 		/* 
-		Заполняем структуру отвечающую за отправку кадров
-		StdId — это идентификатор стандартного кадра.
-		ExtId — это идентификатор расширенного кадра. Мы будем отправлять стандартный поэтому сюда пишем 0.
-		RTR = CAN_RTR_DATA — это говорит о том, что мы отправляем кадр с данными (Data Frame). Если указать CAN_RTR_REMOTE, тогда это будет Remote Frame.
-		IDE = CAN_ID_STD — это говорит о том, что мы отправляем стандартный кадр. Если указать CAN_ID_EXT, тогда это будет расширенный кадр. В StdId нужно будет указать 0, а в ExtId записать расширенный идентификатор.
-		DLC = 8 — количество полезных байт передаваемых в кадре (от 1 до 8).
-		TransmitGlobalTime — относится к Time Triggered Communication Mode, мы это не используем поэтому пишем 0.
+		Р—Р°РїРѕР»РЅСЏРµРј СЃС‚СЂСѓРєС‚СѓСЂСѓ РѕС‚РІРµС‡Р°СЋС‰СѓСЋ Р·Р° РѕС‚РїСЂР°РІРєСѓ РєР°РґСЂРѕРІ
+		StdId вЂ” СЌС‚Рѕ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ СЃС‚Р°РЅРґР°СЂС‚РЅРѕРіРѕ РєР°РґСЂР°.
+		ExtId вЂ” СЌС‚Рѕ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ СЂР°СЃС€РёСЂРµРЅРЅРѕРіРѕ РєР°РґСЂР°. РњС‹ Р±СѓРґРµРј РѕС‚РїСЂР°РІР»СЏС‚СЊ СЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ РїРѕСЌС‚РѕРјСѓ СЃСЋРґР° РїРёС€РµРј 0.
+		RTR = CAN_RTR_DATA вЂ” СЌС‚Рѕ РіРѕРІРѕСЂРёС‚ Рѕ С‚РѕРј, С‡С‚Рѕ РјС‹ РѕС‚РїСЂР°РІР»СЏРµРј РєР°РґСЂ СЃ РґР°РЅРЅС‹РјРё (Data Frame). Р•СЃР»Рё СѓРєР°Р·Р°С‚СЊ CAN_RTR_REMOTE, С‚РѕРіРґР° СЌС‚Рѕ Р±СѓРґРµС‚ Remote Frame.
+		IDE = CAN_ID_STD вЂ” СЌС‚Рѕ РіРѕРІРѕСЂРёС‚ Рѕ С‚РѕРј, С‡С‚Рѕ РјС‹ РѕС‚РїСЂР°РІР»СЏРµРј СЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ РєР°РґСЂ. Р•СЃР»Рё СѓРєР°Р·Р°С‚СЊ CAN_ID_EXT, С‚РѕРіРґР° СЌС‚Рѕ Р±СѓРґРµС‚ СЂР°СЃС€РёСЂРµРЅРЅС‹Р№ РєР°РґСЂ. Р’ StdId РЅСѓР¶РЅРѕ Р±СѓРґРµС‚ СѓРєР°Р·Р°С‚СЊ 0, Р° РІ ExtId Р·Р°РїРёСЃР°С‚СЊ СЂР°СЃС€РёСЂРµРЅРЅС‹Р№ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ.
+		DLC = 8 вЂ” РєРѕР»РёС‡РµСЃС‚РІРѕ РїРѕР»РµР·РЅС‹С… Р±Р°Р№С‚ РїРµСЂРµРґР°РІР°РµРјС‹С… РІ РєР°РґСЂРµ (РѕС‚ 1 РґРѕ 8).
+		TransmitGlobalTime вЂ” РѕС‚РЅРѕСЃРёС‚СЃСЏ Рє Time Triggered Communication Mode, РјС‹ СЌС‚Рѕ РЅРµ РёСЃРїРѕР»СЊР·СѓРµРј РїРѕСЌС‚РѕРјСѓ РїРёС€РµРј 0.
 	*/
 	TxHeader.StdId = 0x07B0;
 	TxHeader.ExtId = 0;
@@ -343,35 +459,54 @@ int main(void)
 	TxHeader.TransmitGlobalTime = DISABLE;
 	
 	
-	/* активируем события которые будут вызывать прерывания  */
+	/* Р°РєС‚РёРІРёСЂСѓРµРј СЃРѕР±С‹С‚РёСЏ РєРѕС‚РѕСЂС‹Рµ Р±СѓРґСѓС‚ РІС‹Р·С‹РІР°С‚СЊ РїСЂРµСЂС‹РІР°РЅРёСЏ  */
 	HAL_CAN_ActivateNotification(&hcan, CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_ERROR | CAN_IT_BUSOFF | CAN_IT_LAST_ERROR_CODE);
 	
 	HAL_CAN_Start(&hcan);
+	
+	TxHeader.StdId = 0x07B0;
+	TxHeader.DLC = 7;
+	TxData[0] = 0x44;
+	TxData[1] = 0x53;
+	TxData[2] = 0x46;
+	TxData[3] = 0x30;
+	TxData[4] = 0x30;
+	TxData[5] = 0x30;
+	TxData[6] = 0x33;
+	TxData[7] = 0x00;
+	
 	
 	
 #ifdef ARGB_LIB
 	ARGB_Init();  // Initialization
 	ARGB_SetBrightness(50);  // Set global brightness to 30%
-//	ARGB_FillRGB(0, 20, 0); // Fill all the strip with Red
-	ARGB_Clear(); // Clear stirp
+	ARGB_FillRGB(0, 20, 0); // Fill all the strip with Red
+//	ARGB_Clear(); // Clear stirp
 	while (RGB_Show() != ARGB_OK); // Update - Option 1
-#else						
+#else				
+//	ws2812_init(); 			
 				
 #endif	
 
-	// InitFlash();
+	InitFlash();
 	
 	fileName[0] = '0'; 
 	fileName[1] = '0';
 	fileName[2] = '0';
-	fileName[3] = '1';
+	fileName[3] = '0';
 	fileName[4] = '.';
-	fileName[5] = 'p';
-	fileName[6] = 'x';
-	fileName[7] = 'l';
+	fileName[5] = 'b';
+	fileName[6] = 'm';
+	fileName[7] = 'p';
 	fileName[8] = '\0';
 		
-
+		
+	fileName[5] = 'p';
+	fileName[6] = '\0';
+	fileName[7] = '\0';
+	fileName[8] = '\0';
+		
+		uint8_t fnm = 1;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -383,19 +518,123 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+//	uint16_t n=0;
+		
+		if(readCAN != 0){
+				
+			if(RxData[6] == 0x31){
+        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+//				ARGB_FillRGB(0, 20, 0); // Fill all the strip with Red
+				fnm ++;
+				if(fnm >5) fnm = 1;
+				fileName[3] = fnm+0x30;
+				
+				fileName[0] = '0'; 
+				fileName[1] = '0';
+				fileName[2] = '0';
+				fileName[3] = '9';
+				fileName[4] = '.';
+				fileName[5] = 'o';
+				fileName[6] = 'u';
+				fileName[7] = 't';
+				fileName[8] = '\0';
 
-//			f_chdir("/SF");		// перейти в папку SF
-			uint8_t resultF = f_open(&MyFile, (char*)fileName, FA_READ);
+				
+				
+			}
+			if(RxData[6] == 0x32){
+        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+				ARGB_FillRGB(0, 0, 0); // Fill all the strip with Red
+				while (!RGB_Show());
+				
+				fileName[3] = 0;		// С‡С‚РѕР±С‹ РЅРµ С‡РёС‚Р°Р» С„Р°Р№Р»
+				
+			}
+
+			
+//			f_chdir("/SF");		// РїРµСЂРµР№С‚Рё РІ РїР°РїРєСѓ SF
+			uint8_t resultF = f_open(&MyFile, (char*)fileName, FA_READ);	//"123.txt"
 			if(resultF == FR_OK){
 //				ReadFileP();
 				ReadFileOUT();
 //				ReadFileBMP();
 //				ReadFileBIN();
 				f_close(&MyFile);
-				HAL_UART_Transmit(&huart1, RxData, 8, 1000);
-			}
+				
 
+			}
+			readCAN = 0;
+			
+		}
 		
+		
+		
+		
+		
+		
+
+//	for(n=0;n<256;n++){
+//		ARGB_Clear(); // Clear stirp
+//		ARGB_SetRGB(n, 100, 0, 0); // Set LED в„–3 with 255 Green
+//    while (!ARGB_Show());  // Update - Option 2
+//		HAL_Delay(50);
+//	}
+
+//    ARGB_FillRGB(0, 0, 20); // Fill all the strip with Red
+//    while (!ARGB_Show());
+//		HAL_Delay(cn);
+//		
+//    ARGB_FillRGB(0, 20, 0); // Fill all the strip with Red
+//    while (!ARGB_Show());
+//		HAL_Delay(cn);
+//		
+//    ARGB_FillRGB(20, 0, 0); // Fill all the strip with Red
+//    while (!ARGB_Show());
+//		HAL_Delay(cn);
+		
+		
+		
+		if(Button1 == 0){
+			TxData[6] = 0x31;
+//			HAL_CAN_Send();
+			RxData[6] = 0x31;
+			readCAN = 1;
+		}
+		if(Button2 == 0){
+			TxData[6] = 0x32;
+			HAL_CAN_Send();
+		}
+		
+//  for(n=0;n<190;n++){
+//		 HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+//		ws2812_clear(150);
+////		ws2812_pixel_rgb_to_buf_dma(128, 0, 0, n);	
+//		ws2812_light();
+//		HAL_Delay(500);
+//		ws2812_set(20, 20, 20, 150);	
+//		ws2812_light();
+//		 HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+//		HAL_Delay(500);
+//	}
+	
+//  for(n=0;n<LED_COUNT;n++){
+
+//		ws2812_clear(LED_COUNT);
+//		ws2812_pixel_rgb_to_buf_dma(128, 0, 0, n);	
+//		ws2812_light();
+//		HAL_Delay(100);
+//	}
+		
+//		ws2812_test01();
+//		ws2812_test02();
+//		ws2812_test03();
+//		ws2812_test04(1);
+//		ws2812_test04(2);
+//		ws2812_test04(3);
+//		ws2812_test04(4);
+//		ws2812_test04(5);
+//		ws2812_test04(6);
+//		ws2812_test05();
   }
   /* USER CODE END 3 */
 }
@@ -408,6 +647,7 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -436,6 +676,57 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV8;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/**
+  * @brief ADC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC1_Init(void)
+{
+
+  /* USER CODE BEGIN ADC1_Init 0 */
+
+  /* USER CODE END ADC1_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC1_Init 1 */
+
+  /* USER CODE END ADC1_Init 1 */
+  /** Common config
+  */
+  hadc1.Instance = ADC1;
+  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 1;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_1;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC1_Init 2 */
+
+  /* USER CODE END ADC1_Init 2 */
+
 }
 
 /**
@@ -621,7 +912,7 @@ static void MX_TIM2_Init(void)
   sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -675,9 +966,9 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
-  /* DMA1_Channel7_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+  /* DMA1_Channel5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 
 }
 
@@ -700,7 +991,12 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_15, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_10
+                          |GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_3|GPIO_PIN_4
+                          |GPIO_PIN_5|GPIO_PIN_6, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : PC13 PC14 PC15 */
   GPIO_InitStruct.Pin = GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
@@ -709,12 +1005,36 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : PA7 PA15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PB0 PB1 PB2 PB10
+                           PB11 PB12 PB3 PB4
+                           PB5 PB6 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_10
+                          |GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_3|GPIO_PIN_4
+                          |GPIO_PIN_5|GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
   /*Configure GPIO pin : PA8 */
   GPIO_InitStruct.Pin = GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PB8 PB9 */
   GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;

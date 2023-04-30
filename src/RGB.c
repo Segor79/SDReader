@@ -131,6 +131,7 @@ static void RGB_TIM_DMADelayPulseHalfCplt(DMA_HandleTypeDef *hdma);
 
 
 uint16_t ARGB_test(uint16_t inVal) {
+float infloat = 125;
 uint16_t intVal = 125;
 	return  (inVal * intVal) >> 8;
 //	return  inVal;
@@ -329,11 +330,11 @@ ARGB_STATE ARGB_Show(void) {
 #define ARGB_TIM_DMA_CC TIM_DMA_CC4
 #define ARGB_TIM_CCR CCR4
 #endif
-						// пїЅпїЅпїЅпїЅпїЅпїЅ
+						// ссылки
             TIM_HANDLE.hdma[ARGB_TIM_DMA_ID]->XferCpltCallback = ARGB_TIM_DMADelayPulseCplt;
             TIM_HANDLE.hdma[ARGB_TIM_DMA_ID]->XferHalfCpltCallback = ARGB_TIM_DMADelayPulseHalfCplt;
             TIM_HANDLE.hdma[ARGB_TIM_DMA_ID]->XferErrorCallback = TIM_DMAError;
-						// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+						// настройка таймера
             if (HAL_DMA_Start_IT(TIM_HANDLE.hdma[ARGB_TIM_DMA_ID], (u32_t) PWM_BUF,
                                  (u32_t) &TIM_HANDLE.Instance->ARGB_TIM_CCR,
                                  (u16_t) PWM_BUF_LEN) != HAL_OK) {
@@ -379,7 +380,7 @@ static inline u8_t scale8(u8_t x, u8_t scale) {
 static void ARGB_TIM_DMADelayPulseCplt(DMA_HandleTypeDef *hdma) {
 	
 #ifdef RGB_debag
-HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_RESET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_RESET);			// для отладки
 #endif			
 	
     TIM_HandleTypeDef *htim = (TIM_HandleTypeDef *) ((DMA_HandleTypeDef *) hdma)->Parent;
@@ -413,6 +414,7 @@ HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_RESET);			// пїЅпїЅпїЅ пїЅпїЅпїЅп
     if (BUF_COUNTER < NUM_PIXELS) {
         // fill second part of buffer
 			
+				uint16_t cnt = 3 * BUF_COUNTER;
 
         for (volatile u8_t i = 0; i < 8; i++) {
 #ifdef SK6812
@@ -466,7 +468,7 @@ HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_RESET);			// пїЅпїЅпїЅ пїЅпїЅпїЅп
     htim->Channel = HAL_TIM_ACTIVE_CHANNEL_CLEARED;
 		
 #ifdef RGB_debag
-HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_SET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_SET);			// для отладки
 #endif		
 }
 
@@ -478,7 +480,7 @@ HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_SET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
   */
 static void ARGB_TIM_DMADelayPulseHalfCplt(DMA_HandleTypeDef *hdma) {
 #ifdef RGB_debag	
-HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);			// для отладки
 #endif
     TIM_HandleTypeDef *htim = (TIM_HandleTypeDef *) ((DMA_HandleTypeDef *) hdma)->Parent;
     // if wrong handlers
@@ -488,6 +490,7 @@ HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпї
     if (BUF_COUNTER < NUM_PIXELS) {
         // fill first part of buffer
 			
+				uint16_t cnt = 3 * BUF_COUNTER; 
 
         for (volatile u8_t i = 0; i < 8; i++) {
 #ifdef SK6812
@@ -513,7 +516,7 @@ HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпї
         BUF_COUNTER++;
     }
 #ifdef RGB_debag
-HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);			// для отладки
 #endif
 }
 
@@ -594,11 +597,11 @@ ARGB_STATE RGB_Show(void) {
 #define ARGB_TIM_DMA_CC TIM_DMA_CC4
 #define ARGB_TIM_CCR CCR4
 #endif
-						// пїЅпїЅпїЅпїЅпїЅпїЅ
+						// ссылки
             TIM_HANDLE.hdma[ARGB_TIM_DMA_ID]->XferCpltCallback = RGB_TIM_DMADelayPulseCplt;
             TIM_HANDLE.hdma[ARGB_TIM_DMA_ID]->XferHalfCpltCallback = RGB_TIM_DMADelayPulseHalfCplt;
             TIM_HANDLE.hdma[ARGB_TIM_DMA_ID]->XferErrorCallback = TIM_DMAError;
-						// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+						// настройка таймера
             if (HAL_DMA_Start_IT(TIM_HANDLE.hdma[ARGB_TIM_DMA_ID], (u32_t) PWM_BUF,
                                  (u32_t) &TIM_HANDLE.Instance->ARGB_TIM_CCR,
                                  (u16_t) PWM_BUF_LEN) != HAL_OK) {
@@ -616,7 +619,7 @@ ARGB_STATE RGB_Show(void) {
                 __HAL_TIM_ENABLE(&TIM_HANDLE);
             DMA_Send_Stat = HAL_OK;
         }
-        BUF_COUNTER = 4;		// пїЅпїЅпїЅпїЅ 2
+        BUF_COUNTER = 4;		// было 2
         return ARGB_OK;
     }
 }
@@ -629,7 +632,7 @@ ARGB_STATE RGB_Show(void) {
 static void RGB_TIM_DMADelayPulseCplt(DMA_HandleTypeDef *hdma) {
 	
 #ifdef RGB_debag
-HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);			// для отладки
 #endif			
 	
     TIM_HandleTypeDef *htim = (TIM_HandleTypeDef *) ((DMA_HandleTypeDef *) hdma)->Parent;
@@ -682,10 +685,10 @@ HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅп
 					
 					
         }
-        BUF_COUNTER+=2;				// пїЅпїЅпїЅпїЅ ++
+        BUF_COUNTER+=2;				// было ++
     } else if (BUF_COUNTER < NUM_PIXELS + 4) { // if RET transfer
         memset((dma_siz *) &PWM_BUF[PWM_BUF_LEN / 2], 0, (PWM_BUF_LEN / 2)*sizeof(dma_siz)); // second part
-        BUF_COUNTER+=2;				// пїЅпїЅпїЅпїЅ ++
+        BUF_COUNTER+=2;				// было ++
     } else { // if END of transfer
 			
         BUF_COUNTER = 0;
@@ -720,7 +723,7 @@ HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅп
     htim->Channel = HAL_TIM_ACTIVE_CHANNEL_CLEARED;
 		
 #ifdef RGB_debag
-HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);			// для отладки
 #endif		
 }
 
@@ -732,7 +735,7 @@ HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпї
   */
 static void RGB_TIM_DMADelayPulseHalfCplt(DMA_HandleTypeDef *hdma) {
 #ifdef RGB_debag	
-HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);			// для отладки
 #endif
     TIM_HandleTypeDef *htim = (TIM_HandleTypeDef *) ((DMA_HandleTypeDef *) hdma)->Parent;
     // if wrong handlers
@@ -761,7 +764,7 @@ HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅп
             PWM_BUF[i + 32] = (((RGB_BUF[cnt+4] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
             PWM_BUF[i + 40] = (((RGB_BUF[cnt+5] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
 					
-// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ			
+// для замеров			
 //		PWM_BUF[i] = ARGB_test(PWM_BUF[i]);
 //		PWM_BUF[i + 8] = ARGB_test(PWM_BUF[i+ 8]);
 //		PWM_BUF[i + 16] = ARGB_test(PWM_BUF[i+ 16]);
@@ -774,13 +777,13 @@ HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅп
 					
 					
         }
-        BUF_COUNTER+=2;			// пїЅпїЅпїЅпїЅ ++
+        BUF_COUNTER+=2;			// было ++
     } else if (BUF_COUNTER < NUM_PIXELS + 4) { // if RET transfer
         memset((dma_siz *) &PWM_BUF[0], 0, (PWM_BUF_LEN / 2)*sizeof(dma_siz)); // first part
-        BUF_COUNTER+=2;			// пїЅпїЅпїЅпїЅ ++
+        BUF_COUNTER+=2;			// было ++
     }
 #ifdef RGB_debag
-HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);			// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);			// для отладки
 #endif
 }
 
