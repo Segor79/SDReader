@@ -128,6 +128,19 @@ static void RGB_TIM_DMADelayPulseCplt(DMA_HandleTypeDef *hdma);
 static void RGB_TIM_DMADelayPulseHalfCplt(DMA_HandleTypeDef *hdma);
 /// @} //Private
 
+
+
+uint16_t ARGB_test(uint16_t inVal) {
+uint16_t intVal = 125;
+	return  (inVal * intVal) >> 8;
+//	return  inVal;
+}
+
+
+
+
+
+
 /**
  * @brief Init timer & prescalers
  * @param none
@@ -400,7 +413,6 @@ HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_RESET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï
     if (BUF_COUNTER < NUM_PIXELS) {
         // fill second part of buffer
 			
-				uint16_t cnt = 3 * BUF_COUNTER;
 
         for (volatile u8_t i = 0; i < 8; i++) {
 #ifdef SK6812
@@ -466,7 +478,7 @@ HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_SET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
   */
 static void ARGB_TIM_DMADelayPulseHalfCplt(DMA_HandleTypeDef *hdma) {
 #ifdef RGB_debag	
-HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif
     TIM_HandleTypeDef *htim = (TIM_HandleTypeDef *) ((DMA_HandleTypeDef *) hdma)->Parent;
     // if wrong handlers
@@ -476,7 +488,6 @@ HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï
     if (BUF_COUNTER < NUM_PIXELS) {
         // fill first part of buffer
 			
-				uint16_t cnt = 3 * BUF_COUNTER; 
 
         for (volatile u8_t i = 0; i < 8; i++) {
 #ifdef SK6812
@@ -502,7 +513,7 @@ HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï
         BUF_COUNTER++;
     }
 #ifdef RGB_debag
-HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_SET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif
 }
 
@@ -548,10 +559,10 @@ ARGB_STATE RGB_Show(void) {
             PWM_BUF[i + 32] = (((RGB_BUF[4] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
             PWM_BUF[i + 40] = (((RGB_BUF[5] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
 					
-			PWM_BUF[i + 48] = (((RGB_BUF[6] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
+					  PWM_BUF[i + 48] = (((RGB_BUF[6] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
             PWM_BUF[i + 56] = (((RGB_BUF[7] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
             PWM_BUF[i + 64] = (((RGB_BUF[8] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
-			PWM_BUF[i + 72] = (((RGB_BUF[9] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
+					  PWM_BUF[i + 72] = (((RGB_BUF[9] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
             PWM_BUF[i + 80] = (((RGB_BUF[10] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
             PWM_BUF[i + 88] = (((RGB_BUF[11] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
         }
@@ -618,7 +629,7 @@ ARGB_STATE RGB_Show(void) {
 static void RGB_TIM_DMADelayPulseCplt(DMA_HandleTypeDef *hdma) {
 	
 #ifdef RGB_debag
-HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_RESET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif			
 	
     TIM_HandleTypeDef *htim = (TIM_HandleTypeDef *) ((DMA_HandleTypeDef *) hdma)->Parent;
@@ -709,7 +720,7 @@ HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_RESET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï
     htim->Channel = HAL_TIM_ACTIVE_CHANNEL_CLEARED;
 		
 #ifdef RGB_debag
-HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_SET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif		
 }
 
@@ -721,7 +732,7 @@ HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_SET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
   */
 static void RGB_TIM_DMADelayPulseHalfCplt(DMA_HandleTypeDef *hdma) {
 #ifdef RGB_debag	
-HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif
     TIM_HandleTypeDef *htim = (TIM_HandleTypeDef *) ((DMA_HandleTypeDef *) hdma)->Parent;
     // if wrong handlers
@@ -739,6 +750,9 @@ HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï
 //            PWM_BUF[i + 8] = (((RGB_BUF[3 * BUF_COUNTER + 1] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
 //            PWM_BUF[i + 16] = (((RGB_BUF[3 * BUF_COUNTER + 2] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
 					
+					
+					
+					
             PWM_BUF[i] = (((RGB_BUF[cnt] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
             PWM_BUF[i + 8] = (((RGB_BUF[cnt+1] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
             PWM_BUF[i + 16] = (((RGB_BUF[cnt+2] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
@@ -747,6 +761,18 @@ HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï
             PWM_BUF[i + 32] = (((RGB_BUF[cnt+4] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
             PWM_BUF[i + 40] = (((RGB_BUF[cnt+5] << i) & 0x80) > 0) ? PWM_HI : PWM_LO;
 					
+// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½			
+//		PWM_BUF[i] = ARGB_test(PWM_BUF[i]);
+//		PWM_BUF[i + 8] = ARGB_test(PWM_BUF[i+ 8]);
+//		PWM_BUF[i + 16] = ARGB_test(PWM_BUF[i+ 16]);
+//	
+//		PWM_BUF[i + 24] = ARGB_test(PWM_BUF[i+ 24]);
+//		PWM_BUF[i + 32] = ARGB_test(PWM_BUF[i+ 32]);
+//		PWM_BUF[i + 40] = ARGB_test(PWM_BUF[i+ 40]);
+					
+					
+					
+					
         }
         BUF_COUNTER+=2;			// ï¿½ï¿½ï¿½ï¿½ ++
     } else if (BUF_COUNTER < NUM_PIXELS + 4) { // if RET transfer
@@ -754,7 +780,7 @@ HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï
         BUF_COUNTER+=2;			// ï¿½ï¿½ï¿½ï¿½ ++
     }
 #ifdef RGB_debag
-HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_SET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);			// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #endif
 }
 

@@ -27,7 +27,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include "RGB.h"
+//#include "RGB.h"
 #include "sd.h"
 /* USER CODE END Includes */
 
@@ -48,10 +48,10 @@
 	#define ARGB_LIB
 	#define DEBAG_RGB
 
-	#define ClearBit(reg, bit)       reg &= (~(1<<(bit)))   //Ð¿Ñ€Ð¸Ð¼ÐµÑ€: ClearBit(PORTB, 1); //ÑÐ±Ñ€Ð¾ÑÐ¸Ñ‚ÑŒ 1-Ð¹ Ð±Ð¸Ñ‚ PORTB
-	#define SetBit(reg, bit)          reg |= (1<<(bit))     //Ð¿Ñ€Ð¸Ð¼ÐµÑ€: SetBit(PORTB, 3); //ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð¸Ñ‚ÑŒ 3-Ð¹ Ð±Ð¸Ñ‚ PORTB
-	#define BitIsClear(reg, bit)    ((reg & (1<<(bit))) == 0)		//Ð¿Ñ€Ð¸Ð¼ÐµÑ€: if (BitIsClear(PORTB,1)) {...} //ÐµÑÐ»Ð¸ Ð±Ð¸Ñ‚ Ð¾Ñ‡Ð¸Ñ‰ÐµÐ½
-//	#define BitIsSet(reg, bit)       ((reg & (1<<(bit))) != 0)		//Ð¿Ñ€Ð¸Ð¼ÐµÑ€: if(BitIsSet(PORTB,2)) {...} //ÐµÑÐ»Ð¸ Ð±Ð¸Ñ‚ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½
+	#define ClearBit(reg, bit)       reg &= (~(1<<(bit)))   //ïðèìåð: ClearBit(PORTB, 1); //ñáðîñèòü 1-é áèò PORTB
+	#define SetBit(reg, bit)          reg |= (1<<(bit))     //ïðèìåð: SetBit(PORTB, 3); //óñòàíîâèòü 3-é áèò PORTB
+	#define BitIsClear(reg, bit)    ((reg & (1<<(bit))) == 0)		//ïðèìåð: if (BitIsClear(PORTB,1)) {...} //åñëè áèò î÷èùåí
+//	#define BitIsSet(reg, bit)       ((reg & (1<<(bit))) != 0)		//ïðèìåð: if(BitIsSet(PORTB,2)) {...} //åñëè áèò óñòàíîâëåí
 
 /* USER CODE END PD */
 
@@ -67,7 +67,7 @@ SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
-DMA_HandleTypeDef hdma_tim2_ch2_ch4;
+DMA_HandleTypeDef hdma_tim2_ch1;
 
 UART_HandleTypeDef huart1;
 
@@ -86,7 +86,7 @@ UART_HandleTypeDef huart1;
 //	uint16_t byteswritten;
 
 	UINT  cntReadBytes;
-	//char buffer1[512] ="Selection of VAM is set by the previous address set instruction. If the address set instruction of RAM is not performed before this instruction, the data that has been read first is invalid, as the direction of AC is not yet determined. If RAM data is read several times without RAM address instructions set before, read operation, the correct RAM data can be obtained from the second. But the first data would be incorrect, as there is no time margin to transfer RAM data. In case of DDRAM read operation The..."; //Ð…ÑƒÑ„ÐµÑ€ Ð´Ð°Ð½Ð½Ñ‹Ñ… Ð´Ð»Â¤ Ð·Ð°Ð¿Ð¸ÑÐ¸/Ñ‡Ñ‚ÐµÐ½Ð¸Â¤
+	//char buffer1[512] ="Selection of VAM is set by the previous address set instruction. If the address set instruction of RAM is not performed before this instruction, the data that has been read first is invalid, as the direction of AC is not yet determined. If RAM data is read several times without RAM address instructions set before, read operation, the correct RAM data can be obtained from the second. But the first data would be incorrect, as there is no time margin to transfer RAM data. In case of DDRAM read operation The..."; //½óôåð äàííûõ äë¤ çàïèñè/÷òåíè¤
 	extern char str1[60];
 	uint32_t byteswritten,bytesread;
 	uint8_t result;
@@ -96,7 +96,7 @@ UART_HandleTypeDef huart1;
 	char *fn;
 	DIR dir;
 	uint8_t resultF = 0;
-	FRESULT res; //Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚ Ð²Ñ‹Ð¿Ð¾Ð»Ð½ÐµÐ½Ð¸Ñ
+	FRESULT res; //ðåçóëüòàò âûïîëíåíèÿ
 	DWORD fre_clust, fre_sect, tot_sect;
 	
 	//extern char USER_Path[4]; /* logical drive path */
@@ -141,7 +141,7 @@ FRESULT ReadFileOUT(void){
   uint16_t i=0, i1=0, it=0;
   uint32_t ind=0;
   uint32_t f_size = MyFile.fsize;
-	cntBytesStat = 0;		// Ð¾Ð±Ñ‰ÐµÐµ ÐºÐ¾Ð»Ð¸Ñ‡ÐµÑÑ‚Ð²Ð¾ Ð¿Ñ€Ð¾Ñ‡Ð¸Ñ‚Ð°Ð½Ð½Ñ‹Ñ… Ð±Ð°Ð¹Ñ‚ (Ð³Ð»Ð¾Ð±Ð°Ð»ÑŒÐ½Ð°Ñ Ð¿ÐµÑ€ÐµÐ¼ÐµÐ½Ð½Ð°Ñ)
+	cntBytesStat = 0;		// îáùåå êîëè÷åñòâî ïðî÷èòàííûõ áàéò (ãëîáàëüíàÿ ïåðåìåííàÿ)
 	uint16_t cntBytesFrame = 0;		// 
 	uint16_t k = 0;
 	
@@ -158,21 +158,21 @@ FRESULT ReadFileOUT(void){
     }
     f_size-=i1;
     f_lseek(&MyFile,ind);
-    f_read(&MyFile,sect,i1,(UINT *)&bytesread);		//( , Ð£ÐºÐ°Ð·Ð°Ñ‚ÐµÐ»ÑŒ Ð½Ð° Ð±ÑƒÑ„ÐµÑ€ Ð´Ð°Ð½Ð½Ñ‹Ñ…, ÐºÐ¾Ð»-Ð²Ð¾ Ð±Ð°Ð¹Ñ‚ Ð´Ð»Ñ Ñ‡Ñ‚ÐµÐ½Ð¸Ñ, Ð£ÐºÐ°Ð·Ð°Ñ‚ÐµÐ»ÑŒ Ð½Ð° ÐºÐ¾Ð»-Ð²Ð¾ Ð¿Ñ€Ð¾Ñ‡Ð¸Ñ‚Ð°Ð½Ð½Ñ‹Ñ… Ð±Ð°Ð¹Ñ‚Ð¾Ð²) Ñ‡Ñ‚ÐµÐ½Ð¸Ðµ Ð¿Ð¾ 512 Ð±Ð°Ð¹Ñ‚
+    f_read(&MyFile,sect,i1,(UINT *)&bytesread);		//( , Óêàçàòåëü íà áóôåð äàííûõ, êîë-âî áàéò äëÿ ÷òåíèÿ, Óêàçàòåëü íà êîë-âî ïðî÷èòàííûõ áàéòîâ) ÷òåíèå ïî 512 áàéò
 
-		// Ð¿ÐµÑ€ÐµÐ½Ð¾ÑÐ¸Ð¼ ÑÑ‡Ð¸Ñ‚Ð°Ð½Ð½Ñ‹Ðµ Ð±Ð°Ð¹Ñ‚Ñ‹ Ð¸Ð· Ñ„Ð°Ð¹Ð»Ð° Ð² Ð±ÑƒÑ„ÐµÑ€ 
+		// ïåðåíîñèì ñ÷èòàííûå áàéòû èç ôàéëà â áóôåð 
 		
-		if(cntBytesStat == 0){				// Ð¿ÐµÑ€Ð²Ñ‹Ð¹ ÑÐµÐºÑ‚Ð¾Ñ€ Ñ Ð¸Ð½Ñ„Ð¾Ð¹ 1Ð±Ð°Ð¹Ñ‚
+		if(cntBytesStat == 0){				// ïåðâûé ñåêòîð ñ èíôîé 1áàéò
 			for(i=1;i<bytesread;i+=3){
-				ARGB_SetRGB(k, sect[i+2], sect[i+1], sect[i]); // Set LED â„– with R, G, B
+				ARGB_SetRGB(k, sect[i+2], sect[i+1], sect[i]); // Set LED ¹ with R, G, B
 				k++;
 				cntBytesStat+=3;
 				cntBytesFrame+=3;
 			}
 		}
-		else{											// ÑÐ»ÐµÐ´ÑƒÑŽÑ‰Ð¸Ðµ ÑÐµÐºÑ‚Ð¾Ñ€Ð°  Ñ Ñ‡Ð¸ÑÑ‚Ñ‹Ð¼Ð¸ Ð´Ð°Ð½Ð½Ñ‹Ð¼Ð¸ 
+		else{											// ñëåäóþùèå ñåêòîðà  ñ ÷èñòûìè äàííûìè 
 			for(it=0;it<bytesread;it+=3){
-				ARGB_SetRGB(k, sect[it+2], sect[it+1], sect[it]); // Set LED â„– with R, G, B
+				ARGB_SetRGB(k, sect[it+2], sect[it+1], sect[it]); // Set LED ¹ with R, G, B
 				k++;
 				cntBytesStat+=3;
 				cntBytesFrame+=3;
@@ -197,10 +197,10 @@ FRESULT ReadFileOUT(void){
 
 
 /* 
-	ÐšÐ¾Ð»Ð±ÐµÐº Ð´Ð»Ñ Ð¿Ñ€Ð¸Ñ‘Ð¼Ð° Ð´Ð°Ð½Ð½Ñ‹Ñ… (Ð´Ð»Ñ Ð±ÑƒÑ„ÐµÑ€Ð° RX_FIFO_0)
-	ÐŸÑ€Ð¸ Ð¿Ñ€Ð¸Ñ‘Ð¼Ðµ Ð»ÑŽÐ±Ð¾Ð³Ð¾ ÐºÐ°Ð´Ñ€Ð° Ð¼Ñ‹ Ñ‚ÑƒÑ‚ Ð¶Ðµ Ð·Ð°Ð±Ð¸Ñ€Ð°ÐµÐ¼ ÐµÐ³Ð¾ Ð¸Ð· Ð¿Ð¾Ñ‡Ñ‚Ð¾Ð²Ð¾Ð³Ð¾ ÑÑ‰Ð¸ÐºÐ° Ñ Ð¿Ð¾Ð¼Ð¾Ñ‰ÑŒÑŽ Ñ„ÑƒÐ½ÐºÑ†Ð¸Ð¸ HAL_CAN_GetRxMessage(...)
-	Ð¸ Ð¼Ð¸Ð³Ð°ÐµÐ¼ ÑÐ²ÐµÑ‚Ð¸ÐºÐ¾Ð¼.
-	Ð’ÐÐ–ÐÐž!!!!!!  Ð´Ð»Ñ Ð¿Ñ€Ð¸ÐµÐ¼Ð° Ð½ÑƒÐ¶Ð½Ð¾ Ð² MX_CAN_Init() Ð¿Ñ€Ð¾Ð¿Ð¸ÑÐ°Ñ‚ÑŒ Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸ Ð¿Ñ€Ð¸ÐµÐ¼Ð°
+	Êîëáåê äëÿ ïðè¸ìà äàííûõ (äëÿ áóôåðà RX_FIFO_0)
+	Ïðè ïðè¸ìå ëþáîãî êàäðà ìû òóò æå çàáèðàåì åãî èç ïî÷òîâîãî ÿùèêà ñ ïîìîùüþ ôóíêöèè HAL_CAN_GetRxMessage(...)
+	è ìèãàåì ñâåòèêîì.
+	ÂÀÆÍÎ!!!!!!  äëÿ ïðèåìà íóæíî â MX_CAN_Init() ïðîïèñàòü íàñòðîéêè ïðèåìà
 */
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
@@ -213,7 +213,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 }
 
 /* 
-	ÐšÐ¾Ð»Ð±ÐµÐº Ð´Ð»Ñ Ð¾ÑˆÐ¸Ð±Ð¾Ðº
+	Êîëáåê äëÿ îøèáîê
 */
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
 {
@@ -254,7 +254,7 @@ void InitFlash(void){
 		{
 			while(1)
 			{
-				result = f_readdir(&dir, &fileInfo);			// 4200 Ð±Ð°Ð¹Ñ‚ 
+				result = f_readdir(&dir, &fileInfo);			// 4200 áàéò 
 				if (result==FR_OK && fileInfo.fname[0])
 				{
 					fn = fileInfo.lfname;
@@ -327,13 +327,13 @@ int main(void)
 	
 	HAL_TIM_Base_Start_IT(&htim1);
 		/* 
-		Ð—Ð°Ð¿Ð¾Ð»Ð½ÑÐµÐ¼ ÑÑ‚Ñ€ÑƒÐºÑ‚ÑƒÑ€Ñƒ Ð¾Ñ‚Ð²ÐµÑ‡Ð°ÑŽÑ‰ÑƒÑŽ Ð·Ð° Ð¾Ñ‚Ð¿Ñ€Ð°Ð²ÐºÑƒ ÐºÐ°Ð´Ñ€Ð¾Ð²
-		StdId â€” ÑÑ‚Ð¾ Ð¸Ð´ÐµÐ½Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð¾Ñ€ ÑÑ‚Ð°Ð½Ð´Ð°Ñ€Ñ‚Ð½Ð¾Ð³Ð¾ ÐºÐ°Ð´Ñ€Ð°.
-		ExtId â€” ÑÑ‚Ð¾ Ð¸Ð´ÐµÐ½Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð¾Ñ€ Ñ€Ð°ÑÑˆÐ¸Ñ€ÐµÐ½Ð½Ð¾Ð³Ð¾ ÐºÐ°Ð´Ñ€Ð°. ÐœÑ‹ Ð±ÑƒÐ´ÐµÐ¼ Ð¾Ñ‚Ð¿Ñ€Ð°Ð²Ð»ÑÑ‚ÑŒ ÑÑ‚Ð°Ð½Ð´Ð°Ñ€Ñ‚Ð½Ñ‹Ð¹ Ð¿Ð¾ÑÑ‚Ð¾Ð¼Ñƒ ÑÑŽÐ´Ð° Ð¿Ð¸ÑˆÐµÐ¼ 0.
-		RTR = CAN_RTR_DATA â€” ÑÑ‚Ð¾ Ð³Ð¾Ð²Ð¾Ñ€Ð¸Ñ‚ Ð¾ Ñ‚Ð¾Ð¼, Ñ‡Ñ‚Ð¾ Ð¼Ñ‹ Ð¾Ñ‚Ð¿Ñ€Ð°Ð²Ð»ÑÐµÐ¼ ÐºÐ°Ð´Ñ€ Ñ Ð´Ð°Ð½Ð½Ñ‹Ð¼Ð¸ (Data Frame). Ð•ÑÐ»Ð¸ ÑƒÐºÐ°Ð·Ð°Ñ‚ÑŒ CAN_RTR_REMOTE, Ñ‚Ð¾Ð³Ð´Ð° ÑÑ‚Ð¾ Ð±ÑƒÐ´ÐµÑ‚ Remote Frame.
-		IDE = CAN_ID_STD â€” ÑÑ‚Ð¾ Ð³Ð¾Ð²Ð¾Ñ€Ð¸Ñ‚ Ð¾ Ñ‚Ð¾Ð¼, Ñ‡Ñ‚Ð¾ Ð¼Ñ‹ Ð¾Ñ‚Ð¿Ñ€Ð°Ð²Ð»ÑÐµÐ¼ ÑÑ‚Ð°Ð½Ð´Ð°Ñ€Ñ‚Ð½Ñ‹Ð¹ ÐºÐ°Ð´Ñ€. Ð•ÑÐ»Ð¸ ÑƒÐºÐ°Ð·Ð°Ñ‚ÑŒ CAN_ID_EXT, Ñ‚Ð¾Ð³Ð´Ð° ÑÑ‚Ð¾ Ð±ÑƒÐ´ÐµÑ‚ Ñ€Ð°ÑÑˆÐ¸Ñ€ÐµÐ½Ð½Ñ‹Ð¹ ÐºÐ°Ð´Ñ€. Ð’ StdId Ð½ÑƒÐ¶Ð½Ð¾ Ð±ÑƒÐ´ÐµÑ‚ ÑƒÐºÐ°Ð·Ð°Ñ‚ÑŒ 0, Ð° Ð² ExtId Ð·Ð°Ð¿Ð¸ÑÐ°Ñ‚ÑŒ Ñ€Ð°ÑÑˆÐ¸Ñ€ÐµÐ½Ð½Ñ‹Ð¹ Ð¸Ð´ÐµÐ½Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð¾Ñ€.
-		DLC = 8 â€” ÐºÐ¾Ð»Ð¸Ñ‡ÐµÑÑ‚Ð²Ð¾ Ð¿Ð¾Ð»ÐµÐ·Ð½Ñ‹Ñ… Ð±Ð°Ð¹Ñ‚ Ð¿ÐµÑ€ÐµÐ´Ð°Ð²Ð°ÐµÐ¼Ñ‹Ñ… Ð² ÐºÐ°Ð´Ñ€Ðµ (Ð¾Ñ‚ 1 Ð´Ð¾ 8).
-		TransmitGlobalTime â€” Ð¾Ñ‚Ð½Ð¾ÑÐ¸Ñ‚ÑÑ Ðº Time Triggered Communication Mode, Ð¼Ñ‹ ÑÑ‚Ð¾ Ð½Ðµ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÐµÐ¼ Ð¿Ð¾ÑÑ‚Ð¾Ð¼Ñƒ Ð¿Ð¸ÑˆÐµÐ¼ 0.
+		Çàïîëíÿåì ñòðóêòóðó îòâå÷àþùóþ çà îòïðàâêó êàäðîâ
+		StdId — ýòî èäåíòèôèêàòîð ñòàíäàðòíîãî êàäðà.
+		ExtId — ýòî èäåíòèôèêàòîð ðàñøèðåííîãî êàäðà. Ìû áóäåì îòïðàâëÿòü ñòàíäàðòíûé ïîýòîìó ñþäà ïèøåì 0.
+		RTR = CAN_RTR_DATA — ýòî ãîâîðèò î òîì, ÷òî ìû îòïðàâëÿåì êàäð ñ äàííûìè (Data Frame). Åñëè óêàçàòü CAN_RTR_REMOTE, òîãäà ýòî áóäåò Remote Frame.
+		IDE = CAN_ID_STD — ýòî ãîâîðèò î òîì, ÷òî ìû îòïðàâëÿåì ñòàíäàðòíûé êàäð. Åñëè óêàçàòü CAN_ID_EXT, òîãäà ýòî áóäåò ðàñøèðåííûé êàäð. Â StdId íóæíî áóäåò óêàçàòü 0, à â ExtId çàïèñàòü ðàñøèðåííûé èäåíòèôèêàòîð.
+		DLC = 8 — êîëè÷åñòâî ïîëåçíûõ áàéò ïåðåäàâàåìûõ â êàäðå (îò 1 äî 8).
+		TransmitGlobalTime — îòíîñèòñÿ ê Time Triggered Communication Mode, ìû ýòî íå èñïîëüçóåì ïîýòîìó ïèøåì 0.
 	*/
 	TxHeader.StdId = 0x07B0;
 	TxHeader.ExtId = 0;
@@ -343,7 +343,7 @@ int main(void)
 	TxHeader.TransmitGlobalTime = DISABLE;
 	
 	
-	/* Ð°ÐºÑ‚Ð¸Ð²Ð¸Ñ€ÑƒÐµÐ¼ ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ñ ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ðµ Ð±ÑƒÐ´ÑƒÑ‚ Ð²Ñ‹Ð·Ñ‹Ð²Ð°Ñ‚ÑŒ Ð¿Ñ€ÐµÑ€Ñ‹Ð²Ð°Ð½Ð¸Ñ  */
+	/* àêòèâèðóåì ñîáûòèÿ êîòîðûå áóäóò âûçûâàòü ïðåðûâàíèÿ  */
 	HAL_CAN_ActivateNotification(&hcan, CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_ERROR | CAN_IT_BUSOFF | CAN_IT_LAST_ERROR_CODE);
 	
 	HAL_CAN_Start(&hcan);
@@ -384,7 +384,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-//			f_chdir("/SF");		// Ð¿ÐµÑ€ÐµÐ¹Ñ‚Ð¸ Ð² Ð¿Ð°Ð¿ÐºÑƒ SF
+//			f_chdir("/SF");		// ïåðåéòè â ïàïêó SF
 			uint8_t resultF = f_open(&MyFile, (char*)fileName, FA_READ);
 			if(resultF == FR_OK){
 //				ReadFileP();
